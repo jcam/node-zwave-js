@@ -164,6 +164,7 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 			MultilevelSwitchCommand.Set,
 		);
 
+		duration = new Duration(2, "seconds");
 		const cc = new MultilevelSwitchCCSet(this.driver, {
 			nodeId: this.endpoint.nodeId,
 			endpoint: this.endpoint.index,
