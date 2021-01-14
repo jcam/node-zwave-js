@@ -131,7 +131,7 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-	public async get() {
+	public async get(duration?: number) {
 		this.assertSupportsCommand(
 			MultilevelSwitchCommand,
 			MultilevelSwitchCommand.Get,
@@ -141,6 +141,12 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 			nodeId: this.endpoint.nodeId,
 			endpoint: this.endpoint.index,
 		});
+
+		// Wait for dim completion
+		if (duration) {
+			await new Promise((resolve) => setTimeout(resolve, duration));
+		}
+
 		const response = (await this.driver.sendCommand<MultilevelSwitchCCReport>(
 			cc,
 			this.commandOptions,
@@ -158,7 +164,10 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 	 * @param duration The optional duration to reach the target value. Available in V2+
 	 */
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-	public async set(targetValue: number, duration?: Duration) {
+	public async set(
+		targetValue: number,
+		duration: Duration = new Duration(0, "default"),
+	) {
 		this.assertSupportsCommand(
 			MultilevelSwitchCommand,
 			MultilevelSwitchCommand.Set,
@@ -206,7 +215,8 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 		) {
 			if (this.isSinglecast()) {
 				// Refresh the current value
-				await this.get();
+				const durationMillis = duration.toMilliseconds() || 5000;
+				await this.get(durationMillis);
 			}
 		}
 	}
