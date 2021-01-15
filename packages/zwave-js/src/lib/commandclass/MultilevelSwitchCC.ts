@@ -131,7 +131,7 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-	public async get() {
+	public async get(awaitTarget?: boolean) {
 		this.assertSupportsCommand(
 			MultilevelSwitchCommand,
 			MultilevelSwitchCommand.Get,
@@ -141,10 +141,23 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 			nodeId: this.endpoint.nodeId,
 			endpoint: this.endpoint.index,
 		});
-		const response = (await this.driver.sendCommand<MultilevelSwitchCCReport>(
+		let response = (await this.driver.sendCommand<MultilevelSwitchCCReport>(
 			cc,
 			this.commandOptions,
 		))!;
+		// If we are waiting for the dimmer to dim, keep checking until it does
+		let breakout = 10;
+		while (
+			awaitTarget &&
+			response.currentValue != response.targetValue &&
+			breakout-- > 0
+		) {
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+			response = (await this.driver.sendCommand<MultilevelSwitchCCReport>(
+				cc,
+				this.commandOptions,
+			))!;
+		}
 		return {
 			currentValue: response.currentValue,
 			targetValue: response.targetValue,
@@ -193,7 +206,7 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 						status === SupervisionStatus.Working ||
 						status === SupervisionStatus.Success
 					) {
-						void this.get().catch();
+						void this.get(true).catch();
 					}
 				},
 			},
@@ -207,7 +220,7 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 		) {
 			if (this.isSinglecast()) {
 				// Refresh the current value
-				await this.get();
+				await this.get(true);
 			}
 		}
 	}
