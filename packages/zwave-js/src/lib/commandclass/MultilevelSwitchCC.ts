@@ -149,7 +149,8 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 		let breakout = 10;
 		while (
 			awaitTarget &&
-			response.currentValue != response.targetValue &&
+			response.currentValue.toString() !=
+				response.targetValue?.toString() &&
 			breakout-- > 0
 		) {
 			await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -177,7 +178,7 @@ export class MultilevelSwitchCCAPI extends CCAPI {
 			MultilevelSwitchCommand.Set,
 		);
 
-		duration = new Duration(2, "seconds");
+		duration = new Duration(0, "default");
 		const cc = new MultilevelSwitchCCSet(this.driver, {
 			nodeId: this.endpoint.nodeId,
 			endpoint: this.endpoint.index,
